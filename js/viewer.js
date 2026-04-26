@@ -8,9 +8,6 @@ const container = document.getElementById('canvas-container');
 const loading = document.getElementById('loading');
 const hint = document.getElementById('hint');
 
-// Default panorama - a placeholder procedural sky gradient
-const DEFAULT_PANORAMA = null; // will generate a procedural one
-
 // ---- Scene Setup ----
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
