@@ -41,7 +41,7 @@ let onPointerDownLat = 0;
 let onPointerDownX = 0;
 let onPointerDownY = 0;
 
-let autoRotate = true;
+let autoRotate = false;
 let autoRotateSpeed = 0.3;
 
 let prevTouchDistance = 0;
@@ -63,55 +63,11 @@ let gyroCalibrated = false;
 const GYRO_LERP = 0.08;  // smoothing factor (lower = smoother/slower)
 
 // ---- Texture Loading ----
-function createProceduralTexture() {
-  const canvas = document.createElement('canvas');
-  canvas.width = 4096;
-  canvas.height = 2048;
-  const ctx = canvas.getContext('2d');
-
-  // Sky gradient
-  const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  skyGrad.addColorStop(0, '#0a1a3a');
-  skyGrad.addColorStop(0.35, '#1a3a6a');
-  skyGrad.addColorStop(0.5, '#4a8ab5');
-  skyGrad.addColorStop(0.55, '#87ceeb');
-  skyGrad.addColorStop(0.7, '#c8e6f5');
-  skyGrad.addColorStop(1, '#e8f0e0');
-  ctx.fillStyle = skyGrad;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Ground simple gradient
-  const groundGrad = ctx.createLinearGradient(0, canvas.height * 0.68, 0, canvas.height);
-  groundGrad.addColorStop(0, '#5a8a4a');
-  groundGrad.addColorStop(0.3, '#3a6a2a');
-  groundGrad.addColorStop(1, '#1a3a1a');
-  ctx.fillStyle = groundGrad;
-  ctx.fillRect(0, canvas.height * 0.68, canvas.width, canvas.height * 0.32);
-
-  // Add some clouds
-  ctx.fillStyle = 'rgba(255,255,255,0.15)';
-  for (let i = 0; i < 60; i++) {
-    const cx = Math.random() * canvas.width;
-    const cy = Math.random() * canvas.height * 0.5;
-    const rw = 80 + Math.random() * 250;
-    const rh = 20 + Math.random() * 50;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, rw, rh, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // Add "上传全景图" text in center
-  ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  ctx.font = 'bold 60px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('点击下方按钮上传全景图', canvas.width / 2, canvas.height / 2 - 30);
-  ctx.font = '30px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.fillText('或拖拽文件到窗口', canvas.width / 2, canvas.height / 2 + 30);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
+const SAMPLE_IMAGES = [
+  'examples/alpine-lake-sunrise.png',
+  'examples/cyberpunk-city-night.png',
+  'examples/desert-canyon-golden-hour.png',
+];
 
 function loadTextureFromFile(file) {
   return new Promise((resolve, reject) => {
@@ -157,11 +113,6 @@ function applyTexture(texture) {
   material.map = texture;
   material.needsUpdate = true;
   hideLoading();
-}
-
-// ---- Load Default Panorama ----
-function loadDefault() {
-  applyTexture(createProceduralTexture());
 }
 
 // ---- Camera Update ----
@@ -427,9 +378,6 @@ btnAutoRotate.addEventListener('click', () => {
   }
 });
 
-// Start with auto-rotate active
-btnAutoRotate.classList.add('active');
-
 btnGyroscope.addEventListener('click', toggleGyroscope);
 
 document.getElementById('btn-zoom-in').addEventListener('click', () => {
@@ -560,7 +508,10 @@ function animate() {
 camera.aspect = window.innerWidth / window.innerHeight;
 camera.updateProjectionMatrix();
 initGyroscope();
-loadDefault();
+
+const randomPic = SAMPLE_IMAGES[Math.floor(Math.random() * SAMPLE_IMAGES.length)];
+loadTextureFromURL(randomPic).then(applyTexture);
+
 animate();
 
 // ---- Check URL params for ?url=... ----
