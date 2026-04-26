@@ -68,9 +68,9 @@ const GYRO_LERP = 0.08;  // smoothing factor (lower = smoother/slower)
 
 // ---- Texture Loading ----
 const BASE_PANORAMAS = [
-  { title: '阿尔卑斯湖日出', region: '示例', url: 'examples/alpine-lake-sunrise.png' },
-  { title: '赛博城市夜景', region: '示例', url: 'examples/cyberpunk-city-night.png' },
-  { title: '沙漠峡谷金色时刻', region: '示例', url: 'examples/desert-canyon-golden-hour.png' },
+  { title: '阿尔卑斯湖日出', region: '示例', url: 'examples/alpine-lake-sunrise.jpg' },
+  { title: '赛博城市夜景', region: '示例', url: 'examples/cyberpunk-city-night.jpg' },
+  { title: '沙漠峡谷金色时刻', region: '示例', url: 'examples/desert-canyon-golden-hour.jpg' },
 ];
 let panoramas = [...BASE_PANORAMAS];
 let currentPanoramaIndex = -1;
