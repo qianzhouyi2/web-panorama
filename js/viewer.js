@@ -230,8 +230,8 @@ function updateGyroscope() {
   // Beta: device tilt front/back (-180 to 180)
   //   -> maps to vertical rotation (lat)
 
-  const targetLon = THREE.MathUtils.degToRad(gyroAlpha) - gyroLonOffset;
-  const targetLat = THREE.MathUtils.degToRad(gyroBeta) - gyroLatOffset;
+  const targetLon = -(THREE.MathUtils.degToRad(gyroAlpha) - gyroLonOffset);
+  const targetLat = -(THREE.MathUtils.degToRad(gyroBeta) - gyroLatOffset);
 
   // Smooth lerp
   lon += (targetLon - lon) * GYRO_LERP;
