@@ -1,0 +1,574 @@
+import * as THREE from 'three';
+
+// ============================================================
+// 360 Panorama Viewer - GitHub Pages ready
+// ============================================================
+
+const container = document.getElementById('canvas-container');
+const loading = document.getElementById('loading');
+const hint = document.getElementById('hint');
+
+// Default panorama - a placeholder procedural sky gradient
+const DEFAULT_PANORAMA = null; // will generate a procedural one
+
+// ---- Scene Setup ----
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+camera.position.set(0, 0, 0.1);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+container.appendChild(renderer.domElement);
+
+// ---- Sphere (the panorama canvas) ----
+const geometry = new THREE.SphereGeometry(500, 128, 128);
+let material = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
+const sphere = new THREE.Mesh(geometry, material);
+scene.add(sphere);
+
+// ---- State ----
+let lon = 0;          // horizontal angle (radians)
+let lat = 0;          // vertical angle (radians)
+let fov = 75;
+const FOV_MIN = 15;
+const FOV_MAX = 120;
+
+let isUserInteracting = false;
+let onPointerDownLon = 0;
+let onPointerDownLat = 0;
+let onPointerDownX = 0;
+let onPointerDownY = 0;
+
+let autoRotate = true;
+let autoRotateSpeed = 0.3;
+
+let prevTouchDistance = 0;
+let prevTouchCenter = { x: 0, y: 0 };
+let prevTouchLon = 0;
+let prevTouchLat = 0;
+
+// ---- Gyroscope State ----
+let gyroscopeActive = false;
+let gyroscopeAvailable = false;
+let gyroAlpha = 0;       // latest raw alpha (deg)
+let gyroBeta = 0;        // latest raw beta (deg)
+let gyroGamma = 0;       // latest raw gamma (deg)
+let gyroTargetLon = 0;   // lerp target lon
+let gyroTargetLat = 0;   // lerp target lat
+let gyroLonOffset = 0;   // initial calibration offset
+let gyroLatOffset = 0;
+let gyroCalibrated = false;
+const GYRO_LERP = 0.08;  // smoothing factor (lower = smoother/slower)
+
+// ---- Texture Loading ----
+function createProceduralTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 4096;
+  canvas.height = 2048;
+  const ctx = canvas.getContext('2d');
+
+  // Sky gradient
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  skyGrad.addColorStop(0, '#0a1a3a');
+  skyGrad.addColorStop(0.35, '#1a3a6a');
+  skyGrad.addColorStop(0.5, '#4a8ab5');
+  skyGrad.addColorStop(0.55, '#87ceeb');
+  skyGrad.addColorStop(0.7, '#c8e6f5');
+  skyGrad.addColorStop(1, '#e8f0e0');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Ground simple gradient
+  const groundGrad = ctx.createLinearGradient(0, canvas.height * 0.68, 0, canvas.height);
+  groundGrad.addColorStop(0, '#5a8a4a');
+  groundGrad.addColorStop(0.3, '#3a6a2a');
+  groundGrad.addColorStop(1, '#1a3a1a');
+  ctx.fillStyle = groundGrad;
+  ctx.fillRect(0, canvas.height * 0.68, canvas.width, canvas.height * 0.32);
+
+  // Add some clouds
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  for (let i = 0; i < 60; i++) {
+    const cx = Math.random() * canvas.width;
+    const cy = Math.random() * canvas.height * 0.5;
+    const rw = 80 + Math.random() * 250;
+    const rh = 20 + Math.random() * 50;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rw, rh, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Add "上传全景图" text in center
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = 'bold 60px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('点击下方按钮上传全景图', canvas.width / 2, canvas.height / 2 - 30);
+  ctx.font = '30px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.fillText('或拖拽文件到窗口', canvas.width / 2, canvas.height / 2 + 30);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+function loadTextureFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const texture = new THREE.Texture(img);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.needsUpdate = true;
+        resolve(texture);
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadTextureFromURL(url) {
+  return new Promise((resolve, reject) => {
+    new THREE.TextureLoader().load(url, (texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      resolve(texture);
+    }, undefined, reject);
+  });
+}
+
+// ---- Show/Hide Loading ----
+function showLoading() {
+  loading.classList.remove('hidden');
+}
+
+function hideLoading() {
+  loading.classList.add('hidden');
+  hint.classList.remove('hidden');
+  setTimeout(() => hint.classList.add('hidden'), 4000);
+}
+
+// ---- Apply Texture ----
+function applyTexture(texture) {
+  material.map = texture;
+  material.needsUpdate = true;
+  hideLoading();
+}
+
+// ---- Load Default Panorama ----
+function loadDefault() {
+  applyTexture(createProceduralTexture());
+}
+
+// ---- Camera Update ----
+function updateCamera() {
+  lat = Math.max(-Math.PI / 2.01, Math.min(Math.PI / 2.01, lat));
+
+  const phi = Math.PI / 2 - lat;
+  const theta = lon;
+
+  const x = 0.1 * Math.sin(phi) * Math.cos(theta);
+  const y = 0.1 * Math.cos(phi);
+  const z = 0.1 * Math.sin(phi) * Math.sin(theta);
+
+  camera.position.set(x, y, z);
+  camera.lookAt(0, 0, 0);
+}
+
+// ---- Gyroscope ----
+function initGyroscope() {
+  // Check API availability
+  if (typeof DeviceOrientationEvent === 'undefined') return;
+
+  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    // iOS 13+ - need explicit user gesture to request
+    gyroscopeAvailable = true;
+    return;
+  }
+
+  // Check if we actually get valid orientation data
+  const handler = (event) => {
+    if (event.alpha !== null) {
+      gyroscopeAvailable = true;
+      window.removeEventListener('deviceorientation', handler);
+    }
+  };
+  window.addEventListener('deviceorientation', handler);
+  // Remove after timeout if no data
+  setTimeout(() => window.removeEventListener('deviceorientation', handler), 2000);
+}
+
+function toggleGyroscope() {
+  if (!gyroscopeAvailable) {
+    alert('此设备不支持陀螺仪或不支持 DeviceOrientation API。\n\n请使用支持陀螺仪的手机查看。');
+    return;
+  }
+
+  // iOS 13+ permission request
+  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission()
+      .then((state) => {
+        if (state === 'granted') {
+          enableGyroscope();
+        } else {
+          alert('需要授予运动传感器权限才能使用陀螺仪功能');
+        }
+      })
+      .catch(() => {
+        alert('陀螺仪权限请求失败，请在系统设置中允许运动传感器权限');
+      });
+    return;
+  }
+
+  if (gyroscopeActive) {
+    disableGyroscope();
+  } else {
+    enableGyroscope();
+  }
+}
+
+function enableGyroscope() {
+  gyroscopeActive = true;
+  gyroCalibrated = false;
+  autoRotate = false;
+
+  btnGyroscope.classList.add('active');
+  btnAutoRotate.classList.remove('active');
+  gyroIndicator.style.display = 'block';
+  hint.textContent = '手机陀螺仪已激活 — 移动手机查看全景';
+  hint.classList.remove('hidden');
+  setTimeout(() => hint.classList.add('hidden'), 4000);
+
+  window.addEventListener('deviceorientation', onDeviceOrientation);
+}
+
+function disableGyroscope() {
+  gyroscopeActive = false;
+  btnGyroscope.classList.remove('active');
+  gyroIndicator.style.display = 'none';
+  hint.textContent = '拖拽旋转 / 滚轮缩放 / 手机陀螺仪';
+  hint.classList.remove('hidden');
+  setTimeout(() => hint.classList.add('hidden'), 3000);
+  window.removeEventListener('deviceorientation', onDeviceOrientation);
+}
+
+function onDeviceOrientation(event) {
+  if (event.alpha === null) return;
+  gyroAlpha = event.alpha;   // 0~360 compass direction
+  gyroBeta = event.beta;     // -180~180 front/back tilt
+  gyroGamma = event.gamma;   // -90~90 left/right tilt
+
+  if (!gyroCalibrated) {
+    // Calibrate: use current device orientation as view center
+    gyroLonOffset = THREE.MathUtils.degToRad(gyroAlpha);
+    gyroLatOffset = THREE.MathUtils.degToRad(gyroBeta);
+    gyroCalibrated = true;
+  }
+}
+
+function updateGyroscope() {
+  if (!gyroscopeActive) return;
+
+  // Convert device orientation to lon/lat
+  // Alpha: compass heading (0-360 deg clockwise from north)
+  //   -> maps to horizontal rotation (lon)
+  // Beta: device tilt front/back (-180 to 180)
+  //   -> maps to vertical rotation (lat)
+
+  const targetLon = THREE.MathUtils.degToRad(gyroAlpha) - gyroLonOffset;
+  const targetLat = THREE.MathUtils.degToRad(gyroBeta) - gyroLatOffset;
+
+  // Smooth lerp
+  lon += (targetLon - lon) * GYRO_LERP;
+  lat += (targetLat - lat) * GYRO_LERP;
+}
+
+// ---- Event Handlers ----
+function onPointerDown(event) {
+  if (event.target.closest('#controls')) return;
+  isUserInteracting = true;
+  onPointerDownX = event.clientX;
+  onPointerDownY = event.clientY;
+  onPointerDownLon = lon;
+  onPointerDownLat = lat;
+  container.classList.add('grabbing');
+}
+
+function onPointerMove(event) {
+  if (!isUserInteracting) return;
+  const dx = event.clientX - onPointerDownX;
+  const dy = event.clientY - onPointerDownY;
+  lon = onPointerDownLon - dx * 0.005;
+  lat = onPointerDownLat + dy * 0.005;
+}
+
+function onPointerUp() {
+  isUserInteracting = false;
+  container.classList.remove('grabbing');
+}
+
+function onWheel(event) {
+  event.preventDefault();
+  fov += event.deltaY * 0.05;
+  fov = Math.max(FOV_MIN, Math.min(FOV_MAX, fov));
+  camera.fov = fov;
+  camera.updateProjectionMatrix();
+}
+
+// ---- Touch Handlers for Mobile ----
+function onTouchStart(event) {
+  if (event.target.closest('#controls')) return;
+  if (event.touches.length === 1) {
+    isUserInteracting = true;
+    onPointerDownX = event.touches[0].clientX;
+    onPointerDownY = event.touches[0].clientY;
+    onPointerDownLon = lon;
+    onPointerDownLat = lat;
+    container.classList.add('grabbing');
+  } else if (event.touches.length === 2) {
+    prevTouchDistance = Math.hypot(
+      event.touches[0].clientX - event.touches[1].clientX,
+      event.touches[0].clientY - event.touches[1].clientY
+    );
+    prevTouchCenter = {
+      x: (event.touches[0].clientX + event.touches[1].clientX) / 2,
+      y: (event.touches[0].clientY + event.touches[1].clientY) / 2,
+    };
+    prevTouchLon = lon;
+    prevTouchLat = lat;
+    isUserInteracting = false;
+  }
+}
+
+function onTouchMove(event) {
+  if (event.touches.length === 1 && isUserInteracting) {
+    const dx = event.touches[0].clientX - onPointerDownX;
+    const dy = event.touches[0].clientY - onPointerDownY;
+    lon = onPointerDownLon - dx * 0.005;
+    lat = onPointerDownLat + dy * 0.005;
+  } else if (event.touches.length === 2) {
+    const dist = Math.hypot(
+      event.touches[0].clientX - event.touches[1].clientX,
+      event.touches[0].clientY - event.touches[1].clientY
+    );
+    const scale = prevTouchDistance / dist;
+    fov = Math.max(FOV_MIN, Math.min(FOV_MAX, fov * scale));
+    camera.fov = fov;
+    camera.updateProjectionMatrix();
+    prevTouchDistance = dist;
+
+    const cx = (event.touches[0].clientX + event.touches[1].clientX) / 2;
+    const cy = (event.touches[0].clientY + event.touches[1].clientY) / 2;
+    lon = prevTouchLon - (cx - prevTouchCenter.x) * 0.005;
+    lat = prevTouchLat + (cy - prevTouchCenter.y) * 0.005;
+  }
+}
+
+function onTouchEnd(event) {
+  if (event.touches.length === 0) {
+    isUserInteracting = false;
+    container.classList.remove('grabbing');
+  }
+}
+
+// ---- Button Handlers ----
+const fileInput = document.getElementById('file-input');
+const btnGyroscope = document.getElementById('btn-gyroscope');
+const gyroIndicator = document.getElementById('gyro-indicator');
+
+document.getElementById('btn-upload').addEventListener('click', () => {
+  fileInput.click();
+});
+
+fileInput.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  showLoading();
+  try {
+    const texture = await loadTextureFromFile(file);
+    applyTexture(texture);
+  } catch (err) {
+    alert('加载图片失败: ' + err.message);
+    hideLoading();
+  }
+});
+
+// Allow drag and drop
+document.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+});
+
+document.addEventListener('drop', async (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  const file = e.dataTransfer.files[0];
+  if (!file || !file.type.startsWith('image/')) return;
+  showLoading();
+  try {
+    const texture = await loadTextureFromFile(file);
+    applyTexture(texture);
+  } catch (err) {
+    alert('加载图片失败: ' + err.message);
+    hideLoading();
+  }
+});
+
+const btnAutoRotate = document.getElementById('btn-auto-rotate');
+btnAutoRotate.addEventListener('click', () => {
+  autoRotate = !autoRotate;
+  btnAutoRotate.classList.toggle('active', autoRotate);
+  if (autoRotate && gyroscopeActive) {
+    disableGyroscope();
+  }
+});
+
+// Start with auto-rotate active
+btnAutoRotate.classList.add('active');
+
+btnGyroscope.addEventListener('click', toggleGyroscope);
+
+document.getElementById('btn-zoom-in').addEventListener('click', () => {
+  fov = Math.max(FOV_MIN, fov - 10);
+  camera.fov = fov;
+  camera.updateProjectionMatrix();
+});
+
+document.getElementById('btn-zoom-out').addEventListener('click', () => {
+  fov = Math.min(FOV_MAX, fov + 10);
+  camera.fov = fov;
+  camera.updateProjectionMatrix();
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  lon = 0;
+  lat = 0;
+  fov = 75;
+  camera.fov = fov;
+  camera.updateProjectionMatrix();
+  if (gyroscopeActive) {
+    gyroCalibrated = false;
+  }
+  updateCamera();
+});
+
+document.getElementById('btn-fullscreen').addEventListener('click', () => {
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  } else {
+    document.body.requestFullscreen();
+  }
+});
+
+// ---- Keyboard Shortcuts ----
+document.addEventListener('keydown', (e) => {
+  switch (e.key.toLowerCase()) {
+    case 'arrowleft':
+    case 'a':
+      lon -= 0.05;
+      break;
+    case 'arrowright':
+    case 'd':
+      lon += 0.05;
+      break;
+    case 'arrowup':
+    case 'w':
+      lat += 0.05;
+      break;
+    case 'arrowdown':
+    case 's':
+      lat -= 0.05;
+      break;
+    case '+':
+    case '=':
+      fov = Math.max(FOV_MIN, fov - 5);
+      camera.fov = fov;
+      camera.updateProjectionMatrix();
+      break;
+    case '-':
+      fov = Math.min(FOV_MAX, fov + 5);
+      camera.fov = fov;
+      camera.updateProjectionMatrix();
+      break;
+    case 'r':
+      autoRotate = !autoRotate;
+      btnAutoRotate.classList.toggle('active', autoRotate);
+      if (autoRotate && gyroscopeActive) {
+        disableGyroscope();
+      }
+      break;
+    case '0':
+      lon = 0;
+      lat = 0;
+      fov = 75;
+      camera.fov = fov;
+      camera.updateProjectionMatrix();
+      if (gyroscopeActive) {
+        gyroCalibrated = false;
+      }
+      updateCamera();
+      break;
+    case 'f':
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        document.body.requestFullscreen();
+      }
+      break;
+    case 'g':
+      toggleGyroscope();
+      break;
+  }
+});
+
+// ---- Event Listeners ----
+document.addEventListener('mousedown', onPointerDown);
+document.addEventListener('mousemove', onPointerMove);
+document.addEventListener('mouseup', onPointerUp);
+document.addEventListener('wheel', onWheel, { passive: false });
+container.addEventListener('touchstart', onTouchStart, { passive: false });
+container.addEventListener('touchmove', onTouchMove, { passive: false });
+container.addEventListener('touchend', onTouchEnd);
+container.addEventListener('touchcancel', onTouchEnd);
+
+// ---- Resize ----
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+// ---- Render Loop ----
+function animate() {
+  requestAnimationFrame(animate);
+
+  updateGyroscope();
+
+  if (autoRotate && !isUserInteracting) {
+    lon += autoRotateSpeed * 0.01;
+  }
+
+  updateCamera();
+  renderer.render(scene, camera);
+}
+
+// ---- Init ----
+camera.aspect = window.innerWidth / window.innerHeight;
+camera.updateProjectionMatrix();
+initGyroscope();
+loadDefault();
+animate();
+
+// ---- Check URL params for ?url=... ----
+const params = new URLSearchParams(window.location.search);
+const urlParam = params.get('url');
+if (urlParam) {
+  showLoading();
+  loadTextureFromURL(urlParam)
+    .then(applyTexture)
+    .catch(() => alert('加载远程全景图失败，请检查 URL'));
+}
