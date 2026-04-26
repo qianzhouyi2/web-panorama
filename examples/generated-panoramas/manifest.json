@@ -1,0 +1,352 @@
+[
+  {
+    "id": "01-china-zhangjiajie-national-forest-park",
+    "title": "张家界国家森林公园",
+    "region": "中国",
+    "path": "examples/generated-panoramas/01-china-zhangjiajie-national-forest-park.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc4c22a188191b1dbb1bf59ceb7ab.png"
+  },
+  {
+    "id": "02-china-guilin-yangshuo-li-river",
+    "title": "桂林阳朔漓江喀斯特",
+    "region": "中国",
+    "path": "examples/generated-panoramas/02-china-guilin-yangshuo-li-river.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc4e905f88191b606ddbca58a0799.png"
+  },
+  {
+    "id": "03-china-huangshan-cloud-sea",
+    "title": "黄山云海日出",
+    "region": "中国",
+    "path": "examples/generated-panoramas/03-china-huangshan-cloud-sea.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc518b4148191b15bd815d4bdf906.png"
+  },
+  {
+    "id": "04-china-jinshanling-great-wall",
+    "title": "金山岭长城秋色",
+    "region": "中国",
+    "path": "examples/generated-panoramas/04-china-jinshanling-great-wall.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc577065c8191baf205536fec57b1.png"
+  },
+  {
+    "id": "05-china-jiuzhaigou-valley",
+    "title": "九寨沟彩林湖泊",
+    "region": "中国",
+    "path": "examples/generated-panoramas/05-china-jiuzhaigou-valley.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc59fd62c8191b722420b650ce3ea.png"
+  },
+  {
+    "id": "06-china-tibet-namtso-lake",
+    "title": "西藏纳木错",
+    "region": "中国",
+    "path": "examples/generated-panoramas/06-china-tibet-namtso-lake.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc642a5688191a33c29bb1ed9f0a9.png"
+  },
+  {
+    "id": "07-china-xinjiang-kanas-lake",
+    "title": "新疆喀纳斯湖",
+    "region": "中国",
+    "path": "examples/generated-panoramas/07-china-xinjiang-kanas-lake.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc687fb188191bec9570e42a19be0.png"
+  },
+  {
+    "id": "08-china-dunhuang-crescent-spring",
+    "title": "敦煌鸣沙山月牙泉",
+    "region": "中国",
+    "path": "examples/generated-panoramas/08-china-dunhuang-crescent-spring.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc6b5a494819189707b0e106b85e4.png"
+  },
+  {
+    "id": "09-china-yuanyang-rice-terraces",
+    "title": "元阳哈尼梯田",
+    "region": "中国",
+    "path": "examples/generated-panoramas/09-china-yuanyang-rice-terraces.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc6e2c4c48191b0686fc14e37a886.png"
+  },
+  {
+    "id": "10-china-jade-dragon-snow-mountain",
+    "title": "丽江玉龙雪山",
+    "region": "中国",
+    "path": "examples/generated-panoramas/10-china-jade-dragon-snow-mountain.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc71e229c8191a9670c6cd96614ed.png"
+  },
+  {
+    "id": "11-china-chaka-salt-lake",
+    "title": "青海茶卡盐湖",
+    "region": "中国",
+    "path": "examples/generated-panoramas/11-china-chaka-salt-lake.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc754742c8191b67cfb297ecd85d2.png"
+  },
+  {
+    "id": "12-china-hulunbuir-grassland",
+    "title": "呼伦贝尔草原",
+    "region": "中国",
+    "path": "examples/generated-panoramas/12-china-hulunbuir-grassland.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc78c7c6481918cc0add3b722c763.png"
+  },
+  {
+    "id": "13-china-wuyi-mountains",
+    "title": "武夷山九曲溪",
+    "region": "中国",
+    "path": "examples/generated-panoramas/13-china-wuyi-mountains.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc7c8231c81919e99ed7f7d600a0a.png"
+  },
+  {
+    "id": "14-china-hainan-yalong-bay",
+    "title": "海南亚龙湾",
+    "region": "中国",
+    "path": "examples/generated-panoramas/14-china-hainan-yalong-bay.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc804b21081919c54eb744441dc43.png"
+  },
+  {
+    "id": "15-china-daocheng-yading",
+    "title": "稻城亚丁",
+    "region": "中国",
+    "path": "examples/generated-panoramas/15-china-daocheng-yading.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc848604c8191a5c5ab3ca1786ea6.png"
+  },
+  {
+    "id": "16-china-huangguoshu-waterfall",
+    "title": "贵州黄果树瀑布",
+    "region": "中国",
+    "path": "examples/generated-panoramas/16-china-huangguoshu-waterfall.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc89127c881918a36d9c96af52a01.png"
+  },
+  {
+    "id": "17-china-hangzhou-west-lake",
+    "title": "杭州西湖",
+    "region": "中国",
+    "path": "examples/generated-panoramas/17-china-hangzhou-west-lake.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc8ddc5a481918893cd38a3d6aa17.png"
+  },
+  {
+    "id": "18-china-suzhou-classical-garden",
+    "title": "苏州古典园林",
+    "region": "中国",
+    "path": "examples/generated-panoramas/18-china-suzhou-classical-garden.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc91f2b24819184a46543a7bb21c2.png"
+  },
+  {
+    "id": "19-china-chongqing-rivers-night",
+    "title": "重庆两江夜景",
+    "region": "中国",
+    "path": "examples/generated-panoramas/19-china-chongqing-rivers-night.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc96978e8819189637d53696c4d23.png"
+  },
+  {
+    "id": "20-china-shanghai-bund-pudong",
+    "title": "上海外滩与浦东",
+    "region": "中国",
+    "path": "examples/generated-panoramas/20-china-shanghai-bund-pudong.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc9aacdb881918ea16e55b7cb9c05.png"
+  },
+  {
+    "id": "21-china-lhasa-potala-palace",
+    "title": "拉萨布达拉宫",
+    "region": "中国",
+    "path": "examples/generated-panoramas/21-china-lhasa-potala-palace.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edc9f1b8e0819187ee2d6d253c2cd4.png"
+  },
+  {
+    "id": "22-china-xian-city-wall",
+    "title": "西安古城墙",
+    "region": "中国",
+    "path": "examples/generated-panoramas/22-china-xian-city-wall.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edca33792c81918c7c942e6c927d64.png"
+  },
+  {
+    "id": "23-china-changbai-mountain-tianchi",
+    "title": "长白山天池",
+    "region": "中国",
+    "path": "examples/generated-panoramas/23-china-changbai-mountain-tianchi.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edca7a187881919ce2f4156b0874b1.png"
+  },
+  {
+    "id": "24-china-zhangye-danxia",
+    "title": "张掖七彩丹霞",
+    "region": "中国",
+    "path": "examples/generated-panoramas/24-china-zhangye-danxia.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edcac2c1c481918fc965dca4263209.png"
+  },
+  {
+    "id": "25-china-hong-kong-victoria-harbour",
+    "title": "香港维多利亚港",
+    "region": "中国",
+    "path": "examples/generated-panoramas/25-china-hong-kong-victoria-harbour.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edcbca052c819189fddb6e5807c64d.png"
+  },
+  {
+    "id": "26-world-grand-canyon-usa",
+    "title": "美国大峡谷",
+    "region": "世界",
+    "path": "examples/generated-panoramas/26-world-grand-canyon-usa.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edcc093da08191972b045cee88fc03.png"
+  },
+  {
+    "id": "27-world-yosemite-usa",
+    "title": "美国优胜美地",
+    "region": "世界",
+    "path": "examples/generated-panoramas/27-world-yosemite-usa.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edcc8057ac8191a85244da119dbe20.png"
+  },
+  {
+    "id": "28-world-banff-moraine-lake-canada",
+    "title": "加拿大班夫梦莲湖",
+    "region": "世界",
+    "path": "examples/generated-panoramas/28-world-banff-moraine-lake-canada.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edccbaa2c08191bc468a009a59fa99.png"
+  },
+  {
+    "id": "29-world-torres-del-paine-chile",
+    "title": "智利百内国家公园",
+    "region": "世界",
+    "path": "examples/generated-panoramas/29-world-torres-del-paine-chile.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edccf2f8c8819182e5ff886894fb8b.png"
+  },
+  {
+    "id": "30-world-iguazu-falls",
+    "title": "伊瓜苏瀑布",
+    "region": "世界",
+    "path": "examples/generated-panoramas/30-world-iguazu-falls.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edcd2abae48191b4c66ad8d21b810f.png"
+  },
+  {
+    "id": "31-world-amazon-rainforest-brazil",
+    "title": "巴西亚马逊雨林河流",
+    "region": "世界",
+    "path": "examples/generated-panoramas/31-world-amazon-rainforest-brazil.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edcd6c42248191992fd41bc5478810.png"
+  },
+  {
+    "id": "32-world-machu-picchu-peru",
+    "title": "秘鲁马丘比丘",
+    "region": "世界",
+    "path": "examples/generated-panoramas/32-world-machu-picchu-peru.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edcdad136081918697408fa5a0f89e.png"
+  },
+  {
+    "id": "33-world-atacama-salt-flat-chile",
+    "title": "智利阿塔卡马盐湖",
+    "region": "世界",
+    "path": "examples/generated-panoramas/33-world-atacama-salt-flat-chile.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edce0bf00481918afeaed07e333c44.png"
+  },
+  {
+    "id": "34-world-jokulsarlon-iceland",
+    "title": "冰岛杰古沙龙冰湖",
+    "region": "世界",
+    "path": "examples/generated-panoramas/34-world-jokulsarlon-iceland.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edce4724b4819182071849874d28b7.png"
+  },
+  {
+    "id": "35-world-geirangerfjord-norway",
+    "title": "挪威盖朗厄尔峡湾",
+    "region": "世界",
+    "path": "examples/generated-panoramas/35-world-geirangerfjord-norway.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edce8a192081919387fa2ae3ff1a99.png"
+  },
+  {
+    "id": "36-world-matterhorn-switzerland",
+    "title": "瑞士马特洪峰",
+    "region": "世界",
+    "path": "examples/generated-panoramas/36-world-matterhorn-switzerland.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edcecd0cf48191a8e677f4da1356ac.png"
+  },
+  {
+    "id": "37-world-santorini-greece",
+    "title": "希腊圣托里尼",
+    "region": "世界",
+    "path": "examples/generated-panoramas/37-world-santorini-greece.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edcf10721c8191a5202c28ad839519.png"
+  },
+  {
+    "id": "38-world-venice-grand-canal-italy",
+    "title": "意大利威尼斯大运河",
+    "region": "世界",
+    "path": "examples/generated-panoramas/38-world-venice-grand-canal-italy.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edcf5b71608191bb0fbddfcecbe338.png"
+  },
+  {
+    "id": "39-world-paris-seine-france",
+    "title": "法国巴黎塞纳河",
+    "region": "世界",
+    "path": "examples/generated-panoramas/39-world-paris-seine-france.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edd005ac0881919153549630d44654.png"
+  },
+  {
+    "id": "40-world-sahara-merzouga-morocco",
+    "title": "摩洛哥撒哈拉沙漠",
+    "region": "世界",
+    "path": "examples/generated-panoramas/40-world-sahara-merzouga-morocco.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edd04162b88191a16431f3ac19d841.png"
+  },
+  {
+    "id": "41-world-serengeti-tanzania",
+    "title": "坦桑尼亚塞伦盖蒂",
+    "region": "世界",
+    "path": "examples/generated-panoramas/41-world-serengeti-tanzania.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edd0772f9c8191af6934b0a60e1dab.png"
+  },
+  {
+    "id": "42-world-victoria-falls",
+    "title": "维多利亚瀑布",
+    "region": "世界",
+    "path": "examples/generated-panoramas/42-world-victoria-falls.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edd0b032c081919eb4dc727e8ef9a5.png"
+  },
+  {
+    "id": "43-world-giza-pyramids-egypt",
+    "title": "埃及吉萨金字塔",
+    "region": "世界",
+    "path": "examples/generated-panoramas/43-world-giza-pyramids-egypt.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edd0f05a8c81919744f4d53c982790.png"
+  },
+  {
+    "id": "44-world-dubai-skyline-uae",
+    "title": "阿联酋迪拜天际线",
+    "region": "世界",
+    "path": "examples/generated-panoramas/44-world-dubai-skyline-uae.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edd138dac4819180e4a113b3be55d8.png"
+  },
+  {
+    "id": "45-world-maldives-lagoon",
+    "title": "马尔代夫潟湖",
+    "region": "世界",
+    "path": "examples/generated-panoramas/45-world-maldives-lagoon.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edd18717508191b4406905df0bfd43.png"
+  },
+  {
+    "id": "46-world-bali-rice-terraces-indonesia",
+    "title": "印度尼西亚巴厘岛梯田",
+    "region": "世界",
+    "path": "examples/generated-panoramas/46-world-bali-rice-terraces-indonesia.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edd1d6986c8191b602116c66b165dd.png"
+  },
+  {
+    "id": "47-world-kyoto-bamboo-grove-japan",
+    "title": "日本京都岚山竹林",
+    "region": "世界",
+    "path": "examples/generated-panoramas/47-world-kyoto-bamboo-grove-japan.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edd22afc9081919fe023fbfc9e1c8b.png"
+  },
+  {
+    "id": "48-world-mount-fuji-kawaguchi-japan",
+    "title": "日本富士山河口湖",
+    "region": "世界",
+    "path": "examples/generated-panoramas/48-world-mount-fuji-kawaguchi-japan.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edd2ff45648191b1417ad497bbc55f.png"
+  },
+  {
+    "id": "49-world-great-barrier-reef-australia",
+    "title": "澳大利亚大堡礁",
+    "region": "世界",
+    "path": "examples/generated-panoramas/49-world-great-barrier-reef-australia.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edd3526f808191afd24c955fa1dbc0.png"
+  },
+  {
+    "id": "50-world-milford-sound-new-zealand",
+    "title": "新西兰米尔福德峡湾",
+    "region": "世界",
+    "path": "examples/generated-panoramas/50-world-milford-sound-new-zealand.png",
+    "source": "/home/saputello/.codex/generated_images/019dc8a6-41f4-7b10-a197-d2ff6dd16b1a/ig_0fe6b1c1b7ff2ae70169edd3954e3881918187419ddf3228ee.png"
+  }
+]

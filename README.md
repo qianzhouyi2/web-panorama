@@ -9,6 +9,7 @@
 - **自动旋转** - 一键开启画面自动旋转
 - **陀螺仪模式** - 手机陀螺仪体感操控（支持 iOS/Android）
 - **上传全景图** - 支持点击上传或拖拽图片到窗口
+- **内置图库** - 包含 50 张中国与世界代表性 AI 生成全景风景图，可直接下拉切换
 - **全屏模式** - 沉浸式全屏查看
 - **键盘快捷键** - WASD/方向键旋转，+/- 缩放，R 自动旋转，G 陀螺仪，F 全屏，0 重置
 - **URL 参数** - 通过 `?url=图片地址` 加载远程全景图
@@ -35,7 +36,13 @@ npx serve .
 
 ## 示例全景图
 
-`examples/` 目录包含几张 AI 生成的 360° 等距柱状投影示例图，可通过 URL 参数直接加载：
+`examples/` 目录包含几张基础示例图，`examples/generated-panoramas/` 包含 50 张中国与世界代表性 AI 生成全景风景图，并由页面顶部下拉菜单自动加载。
+
+生成图库清单位于：
+
+- `examples/generated-panoramas/manifest.json`
+
+基础示例图也可通过 URL 参数直接加载：
 
 - `http://localhost:8000/?url=examples/alpine-lake-sunrise.png`
 - `http://localhost:8000/?url=examples/cyberpunk-city-night.png`

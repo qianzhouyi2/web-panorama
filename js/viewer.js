@@ -7,11 +7,16 @@ import * as THREE from 'three';
 const container = document.getElementById('canvas-container');
 const loading = document.getElementById('loading');
 const hint = document.getElementById('hint');
+const panoramaTitle = document.getElementById('panorama-title');
+const panoramaSelect = document.getElementById('panorama-select');
+const btnPrevPanorama = document.getElementById('btn-prev-panorama');
+const btnRandomPanorama = document.getElementById('btn-random-panorama');
+const btnNextPanorama = document.getElementById('btn-next-panorama');
 
 // ---- Scene Setup ----
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-camera.position.set(0, 0, 0.1);
+camera.position.set(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -22,9 +27,6 @@ container.appendChild(renderer.domElement);
 // ---- Sphere (the panorama canvas) ----
 const geometry = new THREE.SphereGeometry(500, 256, 256);
 let material = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
-material.mapMinFilter = THREE.LinearMipmapLinearFilter;
-material.mapMagFilter = THREE.LinearFilter;
-material.generateMipmaps = true;
 const sphere = new THREE.Mesh(geometry, material);
 scene.add(sphere);
 
@@ -34,6 +36,8 @@ let lat = 0;          // vertical angle (radians)
 let fov = 75;
 const FOV_MIN = 15;
 const FOV_MAX = 120;
+const LAT_LIMIT = THREE.MathUtils.degToRad(89.4);
+const viewTarget = new THREE.Vector3();
 
 let isUserInteracting = false;
 let onPointerDownLon = 0;
@@ -63,11 +67,179 @@ let gyroAccumLat = 0;    // accumulated continuous lat (rad)
 const GYRO_LERP = 0.08;  // smoothing factor (lower = smoother/slower)
 
 // ---- Texture Loading ----
-const SAMPLE_IMAGES = [
-  'examples/alpine-lake-sunrise.png',
-  'examples/cyberpunk-city-night.png',
-  'examples/desert-canyon-golden-hour.png',
+const BASE_PANORAMAS = [
+  { title: '阿尔卑斯湖日出', region: '示例', url: 'examples/alpine-lake-sunrise.png' },
+  { title: '赛博城市夜景', region: '示例', url: 'examples/cyberpunk-city-night.png' },
+  { title: '沙漠峡谷金色时刻', region: '示例', url: 'examples/desert-canyon-golden-hour.png' },
 ];
+let panoramas = [...BASE_PANORAMAS];
+let currentPanoramaIndex = -1;
+
+const POLAR_BAND_RATIO = 0.105;
+const POLAR_CAP_RATIO = 0.014;
+const POLAR_MAX_BLUR_RATIO = 0.085;
+
+function clampLatitude(value) {
+  return Math.max(-LAT_LIMIT, Math.min(LAT_LIMIT, value));
+}
+
+function normalizeLongitude(value) {
+  return THREE.MathUtils.euclideanModulo(value + Math.PI, Math.PI * 2) - Math.PI;
+}
+
+function lerpLongitude(current, target, amount) {
+  const delta = normalizeLongitude(target - current);
+  return normalizeLongitude(current + delta * amount);
+}
+
+function smoothstep(edge0, edge1, value) {
+  const x = Math.max(0, Math.min(1, (value - edge0) / (edge1 - edge0)));
+  return x * x * (3 - 2 * x);
+}
+
+function configurePanoramaTexture(texture) {
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = true;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function averageRows(data, width, height, startY, rowCount) {
+  const y0 = Math.max(0, Math.min(height - 1, startY));
+  const y1 = Math.max(y0 + 1, Math.min(height, y0 + rowCount));
+  const sum = [0, 0, 0, 0];
+  const count = width * (y1 - y0);
+
+  for (let y = y0; y < y1; y += 1) {
+    let offset = y * width * 4;
+    for (let x = 0; x < width; x += 1) {
+      sum[0] += data[offset];
+      sum[1] += data[offset + 1];
+      sum[2] += data[offset + 2];
+      sum[3] += data[offset + 3];
+      offset += 4;
+    }
+  }
+
+  return sum.map((value) => value / count);
+}
+
+function blurRowCircular(data, rowStart, width, radius, output) {
+  if (radius <= 0) {
+    output.set(data.subarray(rowStart, rowStart + width * 4));
+    return;
+  }
+
+  const windowSize = radius * 2 + 1;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  let a = 0;
+
+  for (let dx = -radius; dx <= radius; dx += 1) {
+    const x = THREE.MathUtils.euclideanModulo(dx, width);
+    const idx = rowStart + x * 4;
+    r += data[idx];
+    g += data[idx + 1];
+    b += data[idx + 2];
+    a += data[idx + 3];
+  }
+
+  for (let x = 0; x < width; x += 1) {
+    const out = x * 4;
+    output[out] = r / windowSize;
+    output[out + 1] = g / windowSize;
+    output[out + 2] = b / windowSize;
+    output[out + 3] = a / windowSize;
+
+    const removeX = THREE.MathUtils.euclideanModulo(x - radius, width);
+    const addX = THREE.MathUtils.euclideanModulo(x + radius + 1, width);
+    const removeIdx = rowStart + removeX * 4;
+    const addIdx = rowStart + addX * 4;
+
+    r += data[addIdx] - data[removeIdx];
+    g += data[addIdx + 1] - data[removeIdx + 1];
+    b += data[addIdx + 2] - data[removeIdx + 2];
+    a += data[addIdx + 3] - data[removeIdx + 3];
+  }
+}
+
+function repairPolarRow(data, width, y, radius, poleColor, strength, capWeight, output) {
+  if (strength <= 0) return;
+
+  const rowStart = y * width * 4;
+  blurRowCircular(data, rowStart, width, radius, output);
+
+  for (let x = 0; x < width; x += 1) {
+    const idx = rowStart + x * 4;
+    const out = x * 4;
+
+    for (let channel = 0; channel < 4; channel += 1) {
+      const blurred = output[out + channel];
+      const target = blurred + (poleColor[channel] - blurred) * capWeight;
+      data[idx + channel] += (target - data[idx + channel]) * strength;
+    }
+  }
+}
+
+function repairPolarBand(data, width, bandHeight, poleColor, isTop, maxBlurRadius) {
+  const rowBuffer = new Uint8ClampedArray(width * 4);
+
+  for (let i = 0; i < bandHeight; i += 1) {
+    const edgeWeight = 1 - i / (bandHeight - 1);
+    const strength = smoothstep(0, 1, edgeWeight);
+    const radius = Math.round(maxBlurRadius * strength);
+    const capWeight = smoothstep(0.58, 1, edgeWeight);
+    const y = isTop ? i : bandHeight - 1 - i;
+
+    repairPolarRow(data, width, y, radius, poleColor, strength, capWeight, rowBuffer);
+  }
+}
+
+function repairPolarBands(ctx, width, height) {
+  if (width < 64 || height < 32) return;
+
+  const bandHeight = Math.max(2, Math.round(height * POLAR_BAND_RATIO));
+  const capRows = Math.max(1, Math.round(height * POLAR_CAP_RATIO));
+  const maxBlurRadius = Math.max(1, Math.round(width * POLAR_MAX_BLUR_RATIO));
+
+  const topBand = ctx.getImageData(0, 0, width, bandHeight);
+  const topPoleColor = averageRows(topBand.data, width, bandHeight, 0, capRows);
+  repairPolarBand(topBand.data, width, bandHeight, topPoleColor, true, maxBlurRadius);
+  ctx.putImageData(topBand, 0, 0);
+
+  const bottomY = height - bandHeight;
+  const bottomBand = ctx.getImageData(0, bottomY, width, bandHeight);
+  const bottomPoleColor = averageRows(bottomBand.data, width, bandHeight, bandHeight - capRows, capRows);
+  repairPolarBand(bottomBand.data, width, bandHeight, bottomPoleColor, false, maxBlurRadius);
+  ctx.putImageData(bottomBand, 0, bottomY);
+}
+
+function createPanoramaTexture(img) {
+  try {
+    const width = img.naturalWidth || img.width;
+    const height = img.naturalHeight || img.height;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, 0, 0, width, height);
+    repairPolarBands(ctx, width, height);
+
+    return configurePanoramaTexture(new THREE.CanvasTexture(canvas));
+  } catch (err) {
+    console.warn('Pole repair skipped; using original panorama texture.', err);
+    return configurePanoramaTexture(new THREE.Texture(img));
+  }
+}
 
 function loadTextureFromFile(file) {
   return new Promise((resolve, reject) => {
@@ -75,13 +247,7 @@ function loadTextureFromFile(file) {
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        const texture = new THREE.Texture(img);
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.minFilter = THREE.LinearMipmapLinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-        texture.generateMipmaps = true;
-        texture.needsUpdate = true;
-        resolve(texture);
+        resolve(createPanoramaTexture(img));
       };
       img.onerror = reject;
       img.src = e.target.result;
@@ -95,17 +261,84 @@ function loadTextureFromURL(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      const texture = new THREE.Texture(img);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.minFilter = THREE.LinearMipmapLinearFilter;
-      texture.magFilter = THREE.LinearFilter;
-      texture.generateMipmaps = true;
-      texture.needsUpdate = true;
-      resolve(texture);
+      resolve(createPanoramaTexture(img));
     };
     img.onerror = reject;
+    img.crossOrigin = 'anonymous';
     img.src = url;
   });
+}
+
+function panoramaLabel(panorama) {
+  return panorama.region ? `${panorama.region} · ${panorama.title}` : panorama.title;
+}
+
+function populatePanoramaSelect() {
+  if (!panoramaSelect) return;
+  panoramaSelect.innerHTML = '';
+  panoramas.forEach((panorama, index) => {
+    const option = document.createElement('option');
+    option.value = String(index);
+    option.textContent = panoramaLabel(panorama);
+    panoramaSelect.appendChild(option);
+  });
+}
+
+function updatePanoramaUI(panorama) {
+  if (panoramaTitle) {
+    panoramaTitle.textContent = panorama ? panoramaLabel(panorama) : '外部全景图';
+  }
+  if (panoramaSelect) {
+    panoramaSelect.value = currentPanoramaIndex >= 0 ? String(currentPanoramaIndex) : '';
+  }
+}
+
+async function loadGeneratedPanoramas() {
+  try {
+    const response = await fetch('examples/generated-panoramas/manifest.json', { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const generated = await response.json();
+    panoramas = [
+      ...BASE_PANORAMAS,
+      ...generated.map((item) => ({
+        title: item.title,
+        region: item.region,
+        url: item.path,
+      })),
+    ];
+  } catch (err) {
+    console.warn('无法加载生成全景图库，使用内置示例:', err);
+    panoramas = [...BASE_PANORAMAS];
+  }
+  populatePanoramaSelect();
+}
+
+async function loadPanoramaByIndex(index) {
+  if (!panoramas.length) return;
+  currentPanoramaIndex = (index + panoramas.length) % panoramas.length;
+  const panorama = panoramas[currentPanoramaIndex];
+  showLoading();
+  try {
+    const texture = await loadTextureFromURL(panorama.url);
+    applyTexture(texture);
+    updatePanoramaUI(panorama);
+  } catch (err) {
+    hideLoading();
+    alert('加载全景图失败: ' + err.message);
+  }
+}
+
+async function loadExternalPanorama(url) {
+  currentPanoramaIndex = -1;
+  showLoading();
+  try {
+    const texture = await loadTextureFromURL(url);
+    applyTexture(texture);
+    updatePanoramaUI({ title: 'URL 图片', region: '外部' });
+  } catch {
+    hideLoading();
+    alert('加载远程全景图失败，请检查 URL');
+  }
 }
 
 // ---- Show/Hide Loading ----
@@ -128,17 +361,18 @@ function applyTexture(texture) {
 
 // ---- Camera Update ----
 function updateCamera() {
-  lat = Math.max(-Math.PI / 2.01, Math.min(Math.PI / 2.01, lat));
+  lat = clampLatitude(lat);
+  lon = normalizeLongitude(lon);
 
-  const phi = Math.PI / 2 - lat;
-  const theta = lon;
+  const cosLat = Math.cos(lat);
+  viewTarget.set(
+    -cosLat * Math.cos(lon),
+    -Math.sin(lat),
+    -cosLat * Math.sin(lon)
+  );
 
-  const x = 0.1 * Math.sin(phi) * Math.cos(theta);
-  const y = 0.1 * Math.cos(phi);
-  const z = 0.1 * Math.sin(phi) * Math.sin(theta);
-
-  camera.position.set(x, y, z);
-  camera.lookAt(0, 0, 0);
+  camera.position.set(0, 0, 0);
+  camera.lookAt(viewTarget);
 }
 
 // ---- Gyroscope ----
@@ -245,8 +479,8 @@ function onDeviceOrientation(event) {
   if (deltaBeta < -180) deltaBeta += 360;
 
   // Accumulate continuous rotation (negated for correct direction)
-  gyroAccumLon -= THREE.MathUtils.degToRad(deltaAlpha);
-  gyroAccumLat -= THREE.MathUtils.degToRad(deltaBeta);
+  gyroAccumLon = normalizeLongitude(gyroAccumLon - THREE.MathUtils.degToRad(deltaAlpha));
+  gyroAccumLat = clampLatitude(gyroAccumLat - THREE.MathUtils.degToRad(deltaBeta));
 
   gyroPrevAlpha = rawAlpha;
   gyroPrevBeta = rawBeta;
@@ -258,13 +492,13 @@ function updateGyroscope() {
   if (!gyroscopeActive) return;
 
   // Smooth lerp toward accumulated continuous rotation
-  lon += (gyroAccumLon - lon) * GYRO_LERP;
+  lon = lerpLongitude(lon, gyroAccumLon, GYRO_LERP);
   lat += (gyroAccumLat - lat) * GYRO_LERP;
 }
 
 // ---- Event Handlers ----
 function onPointerDown(event) {
-  if (event.target.closest('#controls')) return;
+  if (event.target.closest('#controls, #panorama-browser')) return;
   isUserInteracting = true;
   onPointerDownX = event.clientX;
   onPointerDownY = event.clientY;
@@ -287,6 +521,7 @@ function onPointerUp() {
 }
 
 function onWheel(event) {
+  if (event.target.closest('#panorama-browser')) return;
   event.preventDefault();
   fov += event.deltaY * 0.05;
   fov = Math.max(FOV_MIN, Math.min(FOV_MAX, fov));
@@ -296,7 +531,7 @@ function onWheel(event) {
 
 // ---- Touch Handlers for Mobile ----
 function onTouchStart(event) {
-  if (event.target.closest('#controls')) return;
+  if (event.target.closest('#controls, #panorama-browser')) return;
   if (event.touches.length === 1) {
     isUserInteracting = true;
     onPointerDownX = event.touches[0].clientX;
@@ -404,6 +639,26 @@ btnAutoRotate.addEventListener('click', () => {
 
 btnGyroscope.addEventListener('click', toggleGyroscope);
 
+panoramaSelect?.addEventListener('change', (e) => {
+  loadPanoramaByIndex(Number(e.target.value));
+});
+
+btnPrevPanorama?.addEventListener('click', () => {
+  loadPanoramaByIndex(currentPanoramaIndex - 1);
+});
+
+btnRandomPanorama?.addEventListener('click', () => {
+  let nextIndex = Math.floor(Math.random() * panoramas.length);
+  if (panoramas.length > 1 && nextIndex === currentPanoramaIndex) {
+    nextIndex = (nextIndex + 1) % panoramas.length;
+  }
+  loadPanoramaByIndex(nextIndex);
+});
+
+btnNextPanorama?.addEventListener('click', () => {
+  loadPanoramaByIndex(currentPanoramaIndex + 1);
+});
+
 document.getElementById('btn-zoom-in').addEventListener('click', () => {
   fov = Math.max(FOV_MIN, fov - 10);
   camera.fov = fov;
@@ -439,6 +694,7 @@ document.getElementById('btn-fullscreen').addEventListener('click', () => {
 
 // ---- Keyboard Shortcuts ----
 document.addEventListener('keydown', (e) => {
+  if (['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(e.target.tagName)) return;
   switch (e.key.toLowerCase()) {
     case 'arrowleft':
     case 'a':
@@ -535,17 +791,21 @@ camera.aspect = window.innerWidth / window.innerHeight;
 camera.updateProjectionMatrix();
 initGyroscope();
 
-const randomPic = SAMPLE_IMAGES[Math.floor(Math.random() * SAMPLE_IMAGES.length)];
-loadTextureFromURL(randomPic).then(applyTexture);
-
 animate();
 
 // ---- Check URL params for ?url=... ----
-const params = new URLSearchParams(window.location.search);
-const urlParam = params.get('url');
-if (urlParam) {
-  showLoading();
-  loadTextureFromURL(urlParam)
-    .then(applyTexture)
-    .catch(() => alert('加载远程全景图失败，请检查 URL'));
+async function initPanorama() {
+  await loadGeneratedPanoramas();
+
+  const params = new URLSearchParams(window.location.search);
+  const urlParam = params.get('url');
+  if (urlParam) {
+    await loadExternalPanorama(urlParam);
+    return;
+  }
+
+  const randomIndex = Math.floor(Math.random() * panoramas.length);
+  await loadPanoramaByIndex(randomIndex);
 }
+
+initPanorama();

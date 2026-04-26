@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="images/app-icon-192.png">
   <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body>
   <!-- Loading Overlay -->
@@ -21,6 +21,17 @@
 
   <!-- Three.js Canvas Container -->
   <div id="canvas-container"></div>
+
+  <!-- Panorama Browser -->
+  <div id="panorama-browser">
+    <div id="panorama-title">全景图库</div>
+    <select id="panorama-select" aria-label="选择全景图"></select>
+    <div id="panorama-actions">
+      <button id="btn-prev-panorama" type="button">上一张</button>
+      <button id="btn-random-panorama" type="button">随机</button>
+      <button id="btn-next-panorama" type="button">下一张</button>
+    </div>
+  </div>
 
   <!-- Hint: Drag to rotate -->
   <div id="hint">拖拽旋转 / 滚轮缩放 / 手机陀螺仪</div>
@@ -101,6 +112,6 @@
       }
     }
   </script>
-  <script type="module" src="js/viewer.js?v=3"></script>
+  <script type="module" src="js/viewer.js?v=4"></script>
 </body>
 </html>
