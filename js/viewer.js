@@ -52,11 +52,11 @@ let gyroscopeAvailable = false;
 let gyroAlpha = 0;       // latest raw alpha (deg)
 let gyroBeta = 0;        // latest raw beta (deg)
 let gyroGamma = 0;       // latest raw gamma (deg)
-let gyroTargetLon = 0;   // lerp target lon
-let gyroTargetLat = 0;   // lerp target lat
-let gyroLonOffset = 0;   // initial calibration offset
-let gyroLatOffset = 0;
-let gyroCalibrated = false;
+let gyroPrevAlpha = 0;   // previous alpha for delta tracking
+let gyroPrevBeta = 0;    // previous beta for delta tracking
+let gyroInit = false;    // first frame flag
+let gyroAccumLon = 0;    // accumulated continuous lon (rad)
+let gyroAccumLat = 0;    // accumulated continuous lat (rad)
 const GYRO_LERP = 0.08;  // smoothing factor (lower = smoother/slower)
 
 // ---- Texture Loading ----
@@ -181,7 +181,9 @@ function toggleGyroscope() {
 
 function enableGyroscope() {
   gyroscopeActive = true;
-  gyroCalibrated = false;
+  gyroInit = false;
+  gyroAccumLon = lon;
+  gyroAccumLat = lat;
   autoRotate = false;
 
   btnGyroscope.classList.add('active');
@@ -206,33 +208,44 @@ function disableGyroscope() {
 
 function onDeviceOrientation(event) {
   if (event.alpha === null) return;
-  gyroAlpha = event.alpha;   // 0~360 compass direction
-  gyroBeta = event.beta;     // -180~180 front/back tilt
-  gyroGamma = event.gamma;   // -90~90 left/right tilt
 
-  if (!gyroCalibrated) {
-    // Calibrate: use current device orientation as view center
-    gyroLonOffset = THREE.MathUtils.degToRad(gyroAlpha);
-    gyroLatOffset = THREE.MathUtils.degToRad(gyroBeta);
-    gyroCalibrated = true;
+  const rawAlpha = event.alpha;   // 0~360 compass direction
+  const rawBeta = event.beta;     // -180~180 front/back tilt
+
+  if (!gyroInit) {
+    // First frame: just record, no delta
+    gyroPrevAlpha = rawAlpha;
+    gyroPrevBeta = rawBeta;
+    gyroInit = true;
+    return;
   }
+
+  // Compute delta alpha, normalize to [-180, 180] to handle 0↔360 wrap
+  let deltaAlpha = rawAlpha - gyroPrevAlpha;
+  if (deltaAlpha > 180) deltaAlpha -= 360;
+  if (deltaAlpha < -180) deltaAlpha += 360;
+
+  // Compute delta beta, normalize to handle -180↔180 wrap
+  let deltaBeta = rawBeta - gyroPrevBeta;
+  if (deltaBeta > 180) deltaBeta -= 360;
+  if (deltaBeta < -180) deltaBeta += 360;
+
+  // Accumulate continuous rotation (negated for correct direction)
+  gyroAccumLon -= THREE.MathUtils.degToRad(deltaAlpha);
+  gyroAccumLat -= THREE.MathUtils.degToRad(deltaBeta);
+
+  gyroPrevAlpha = rawAlpha;
+  gyroPrevBeta = rawBeta;
+  gyroAlpha = rawAlpha;
+  gyroBeta = rawBeta;
 }
 
 function updateGyroscope() {
   if (!gyroscopeActive) return;
 
-  // Convert device orientation to lon/lat
-  // Alpha: compass heading (0-360 deg clockwise from north)
-  //   -> maps to horizontal rotation (lon)
-  // Beta: device tilt front/back (-180 to 180)
-  //   -> maps to vertical rotation (lat)
-
-  const targetLon = -(THREE.MathUtils.degToRad(gyroAlpha) - gyroLonOffset);
-  const targetLat = -(THREE.MathUtils.degToRad(gyroBeta) - gyroLatOffset);
-
-  // Smooth lerp
-  lon += (targetLon - lon) * GYRO_LERP;
-  lat += (targetLat - lat) * GYRO_LERP;
+  // Smooth lerp toward accumulated continuous rotation
+  lon += (gyroAccumLon - lon) * GYRO_LERP;
+  lat += (gyroAccumLat - lat) * GYRO_LERP;
 }
 
 // ---- Event Handlers ----
@@ -396,7 +409,8 @@ document.getElementById('btn-reset').addEventListener('click', () => {
   camera.fov = fov;
   camera.updateProjectionMatrix();
   if (gyroscopeActive) {
-    gyroCalibrated = false;
+    gyroAccumLon = 0;
+    gyroAccumLat = 0;
   }
   updateCamera();
 });
@@ -453,7 +467,8 @@ document.addEventListener('keydown', (e) => {
       camera.fov = fov;
       camera.updateProjectionMatrix();
       if (gyroscopeActive) {
-        gyroCalibrated = false;
+        gyroAccumLon = 0;
+        gyroAccumLat = 0;
       }
       updateCamera();
       break;
