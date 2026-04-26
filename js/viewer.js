@@ -20,8 +20,11 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 container.appendChild(renderer.domElement);
 
 // ---- Sphere (the panorama canvas) ----
-const geometry = new THREE.SphereGeometry(500, 128, 128);
+const geometry = new THREE.SphereGeometry(500, 256, 256);
 let material = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
+material.mapMinFilter = THREE.LinearMipmapLinearFilter;
+material.mapMagFilter = THREE.LinearFilter;
+material.generateMipmaps = true;
 const sphere = new THREE.Mesh(geometry, material);
 scene.add(sphere);
 
@@ -74,6 +77,9 @@ function loadTextureFromFile(file) {
       img.onload = () => {
         const texture = new THREE.Texture(img);
         texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearMipmapLinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = true;
         texture.needsUpdate = true;
         resolve(texture);
       };
@@ -87,10 +93,18 @@ function loadTextureFromFile(file) {
 
 function loadTextureFromURL(url) {
   return new Promise((resolve, reject) => {
-    new THREE.TextureLoader().load(url, (texture) => {
+    const img = new Image();
+    img.onload = () => {
+      const texture = new THREE.Texture(img);
       texture.colorSpace = THREE.SRGBColorSpace;
+      texture.minFilter = THREE.LinearMipmapLinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.generateMipmaps = true;
+      texture.needsUpdate = true;
       resolve(texture);
-    }, undefined, reject);
+    };
+    img.onerror = reject;
+    img.src = url;
   });
 }
 

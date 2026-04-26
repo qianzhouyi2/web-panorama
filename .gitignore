@@ -1,1 +1,11 @@
 .codex
+android-sdk/
+android/.gradle/
+android/build/
+android/app/build/
+android/release.keystore
+android/local.properties
+app-debug.apk
+app-release.apk
+app-release.apk.idsig
+.gradle/
